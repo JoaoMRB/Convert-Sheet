@@ -1,25 +1,26 @@
-# Excel to JSON Converter
+# Convert/Sheet — Excel & CSV to JSON Converter
 
-This project is a small web app that converts Excel and CSV files into JSON with a modern interface, editable preview, and export tools.
+A bespoke, high-fidelity developer utility to convert spreadsheet files (Excel and CSV) into clean JSON and vice-versa. Designed with a custom "Obsidian & Amber" theme, interactive spreadsheet data editing, multiple sheets support, and instant output copy/download actions.
+
+Developed by [JoãoMRB](https://github.com/JoaoMRB).
 
 ## Features
 
-- Drag and drop upload area
-- Excel and CSV support
-- Multiple sheets support
-- JSON preview with syntax highlight
-- JSON download
-- JSON to Excel conversion
-- Dark and light theme toggle
+- **Premium Responsive Interface** - Modern editorial layout built with a customizable Dark/Light mode theme.
+- **Drag & Drop Canvas** - Elegant drop zone with active drag animations.
+- **Interactive Data Grid** - Preview and edit spreadsheet cells directly with a double-click before generating JSON.
+- **Multi-Sheet Support** - Read and convert multiple sheets simultaneously or choose a specific active sheet.
+- **Advanced Export Controls** - Choose between flat or nested (dot-notation) JSON structures, array/object contentors, and minify or pretty-print settings.
+- **Bi-Directional Conversion** - Generate JSON from Excel/CSV files, and convert valid JSON back into downloadable `.xlsx` spreadsheets.
 
-## Open the App
+## How to Run
 
 1. Open the project folder.
-2. Double-click [Index.html](./Index.html) or open it in your browser.
-3. Upload an `.xlsx`, `.xls`, or `.csv` file to start converting.
+2. Double-click [Index.html](./Index.html) or open it in any web browser.
+3. Drag & drop or browse for an `.xlsx`, `.xls`, or `.csv` file to begin.
 
-## Project Files
+## Project Structure
 
-- `Index.html` - app structure
-- `styles.css` - app styles
-- `app.js` - app logic
+- `Index.html` - Semantic markup and split-workspace layout structure.
+- `styles.css` - Custom obsidian color tokens, switches, custom grid layout, and themes.
+- `app.js` - Spreadsheet parsing logic, JSON builder, and DOM events.

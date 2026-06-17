@@ -1,6 +1,162 @@
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const VALID_EXTENSIONS = [".xlsx", ".xls", ".csv"];
 const THEME_KEY = "json-converter-theme";
+const LANG_KEY = "json-converter-lang";
+
+const TRANSLATIONS = {
+    pt: {
+        help_tooltip: "Arraste ficheiros, edite na tabela e converta para JSON instantaneamente.",
+        theme_tooltip: "Alternar tema",
+        developed_by: "Desenvolvido por JoãoMRB",
+        dropzone_title: "Solte o seu ficheiro aqui",
+        dropzone_subtitle: "ou clique para procurar (.xlsx, .xls, .csv até 10MB)",
+        dropzone_invalid_ext: "Ficheiro não suportado.",
+        dropzone_invalid_size: "Ficheiro demasiado grande. Máximo 10MB.",
+        dropzone_read_fail: "Falha ao ler o ficheiro.",
+        stats_title: "Estado e Dados",
+        status_waiting: "Aguardando",
+        status_processing: "A processar",
+        status_error: "Erro",
+        status_ready: "Pronto",
+        stat_files: "Ficheiros Carregados",
+        stat_sheet: "Sheet Ativa",
+        stat_rows: "Linhas Totais",
+        stat_cols: "Colunas",
+        file_summary_empty: "Nenhum ficheiro selecionado.",
+        actions_title: "Ações Principais",
+        btn_convert: "Converter para JSON",
+        btn_load_editor: "Carregar JSON no Editor",
+        btn_clear_all: "Limpar Tudo",
+        progress_reading: "A ler ficheiro...",
+        progress_preparing: "A preparar {filename}...",
+        progress_interpreting: "A interpretar {filename}...",
+        progress_loaded: "{filename} carregado.",
+        config_title: "Parâmetros de Conversão",
+        opt_file: "Ficheiro Ativo",
+        opt_sheet: "Sheet Activa",
+        opt_structure: "Estrutura JSON",
+        opt_container: "Contentor",
+        opt_key: "Chave Customizada",
+        opt_file_choose: "Escolha um ficheiro",
+        opt_sheet_choose: "Escolha uma sheet",
+        opt_structure_flat: "Flat (Plana)",
+        opt_structure_nested: "Nested (Dot Notation)",
+        opt_container_array: "Array de Objetos",
+        opt_container_object: "Objeto Indexado",
+        opt_key_auto: "Auto (index)",
+        toggle_all_sheets: "Todas as Sheets",
+        toggle_pretty: "Pretty Print",
+        toggle_minify: "Minificar JSON",
+        toggle_api: "Envelope API",
+        preview_title: "Grelha de Dados",
+        preview_subtitle: "Visualização das primeiras 10 linhas. Edite as células com duplo-clique antes de converter.",
+        preview_no_data_hdr: "Sem Dados",
+        preview_no_data_body: "Carregue um ficheiro para ver o preview interativo.",
+        tab_json: "JSON Gerado",
+        tab_excel: "JSON para Excel",
+        output_title: "Ficheiro JSON de Output",
+        btn_copy: "Copiar",
+        btn_download: "Baixar",
+        btn_expand: "Expandir",
+        btn_collapse: "Fechar",
+        output_status_ready: "Pronto para converter",
+        output_status_empty: "Sem resultado",
+        editor_title: "Cole o seu JSON para gerar .xlsx",
+        btn_pull_output: "Puxar Output",
+        btn_gen_excel: "Gerar Excel (.xlsx)",
+        editor_placeholder: "[\n  { \"id\": 1, \"nome\": \"Ana\" }\n]",
+        toast_load_file_first: "Carrega primeiro um ficheiro.",
+        toast_json_success: "JSON gerado com sucesso.",
+        toast_no_json_download: "Ainda não existe JSON para baixar.",
+        toast_json_downloaded: "JSON descarregado.",
+        toast_copied: "JSON copiado para a área de transferência.",
+        toast_copy_fail: "Não foi possível copiar automaticamente.",
+        toast_cleared: "Interface limpa e pronta para novo ficheiro.",
+        toast_editor_loaded: "Output enviado para o editor.",
+        toast_invalid_json: "O JSON precisa de ser um array ou objeto.",
+        toast_paste_valid_json: "Cola JSON válido antes de gerar Excel.",
+        toast_excel_generated: "Excel gerado a partir do JSON.",
+        toast_convert_err: "Erro ao converter JSON para Excel: {err}",
+        toast_files_loaded: "Ficheiros carregados com sucesso.",
+        toast_file_loaded: "Ficheiro carregado com sucesso."
+    },
+    en: {
+        help_tooltip: "Drag files, edit in the table, and convert to JSON instantly.",
+        theme_tooltip: "Toggle theme",
+        developed_by: "Developed by JoãoMRB",
+        dropzone_title: "Drop your file here",
+        dropzone_subtitle: "or click to browse (.xlsx, .xls, .csv up to 10MB)",
+        dropzone_invalid_ext: "Unsupported file.",
+        dropzone_invalid_size: "File too large. Maximum 10MB.",
+        dropzone_read_fail: "Failed to read file.",
+        stats_title: "Status & Data",
+        status_waiting: "Waiting",
+        status_processing: "Processing",
+        status_error: "Error",
+        status_ready: "Ready",
+        stat_files: "Loaded Files",
+        stat_sheet: "Active Sheet",
+        stat_rows: "Total Rows",
+        stat_cols: "Columns",
+        file_summary_empty: "No file selected.",
+        actions_title: "Main Actions",
+        btn_convert: "Convert to JSON",
+        btn_load_editor: "Load JSON into Editor",
+        btn_clear_all: "Clear All",
+        progress_reading: "Reading file...",
+        progress_preparing: "Preparing {filename}...",
+        progress_interpreting: "Interpreting {filename}...",
+        progress_loaded: "{filename} loaded.",
+        config_title: "Conversion Parameters",
+        opt_file: "Active File",
+        opt_sheet: "Active Sheet",
+        opt_structure: "JSON Structure",
+        opt_container: "Container",
+        opt_key: "Custom Key",
+        opt_file_choose: "Choose a file",
+        opt_sheet_choose: "Choose a sheet",
+        opt_structure_flat: "Flat",
+        opt_structure_nested: "Nested (Dot Notation)",
+        opt_container_array: "Array of Objects",
+        opt_container_object: "Indexed Object",
+        opt_key_auto: "Auto (index)",
+        toggle_all_sheets: "All Sheets",
+        toggle_pretty: "Pretty Print",
+        toggle_minify: "Minify JSON",
+        toggle_api: "API Envelope",
+        preview_title: "Data Grid",
+        preview_subtitle: "Preview of the first 10 rows. Double-click cells to edit before converting.",
+        preview_no_data_hdr: "No Data",
+        preview_no_data_body: "Load a file to see the interactive preview.",
+        tab_json: "Generated JSON",
+        tab_excel: "JSON to Excel",
+        output_title: "Output JSON File",
+        btn_copy: "Copy",
+        btn_download: "Download",
+        btn_expand: "Maximize",
+        btn_collapse: "Close",
+        output_status_ready: "Ready to convert",
+        output_status_empty: "No result",
+        editor_title: "Paste your JSON to generate .xlsx",
+        btn_pull_output: "Pull Output",
+        btn_gen_excel: "Generate Excel (.xlsx)",
+        editor_placeholder: "[\n  { \"id\": 1, \"name\": \"Ana\" }\n]",
+        toast_load_file_first: "Please load a file first.",
+        toast_json_success: "JSON generated successfully.",
+        toast_no_json_download: "No JSON to download yet.",
+        toast_json_downloaded: "JSON downloaded.",
+        toast_copied: "JSON copied to clipboard.",
+        toast_copy_fail: "Could not copy automatically.",
+        toast_cleared: "Interface cleared and ready for new file.",
+        toast_editor_loaded: "Output sent to editor.",
+        toast_invalid_json: "JSON must be an array or object.",
+        toast_paste_valid_json: "Paste valid JSON before generating Excel.",
+        toast_excel_generated: "Excel generated from JSON.",
+        toast_convert_err: "Error converting JSON to Excel: {err}",
+        toast_files_loaded: "Files loaded successfully.",
+        toast_file_loaded: "File loaded successfully."
+    }
+};
 
 const state = {
     workbooks: [],
@@ -9,10 +165,12 @@ const state = {
     lastOutput: "",
     lastDownloadName: "conversao",
     previewRows: [],
-    previewColumns: []
+    previewColumns: [],
+    currentLanguage: "pt"
 };
 
 const elements = {
+    languageSelect: document.getElementById("languageSelect"),
     inputFile: document.getElementById("inputFile"),
     dropZone: document.getElementById("dropZone"),
     fileSummary: document.getElementById("fileSummary"),
@@ -62,6 +220,82 @@ function escapeHtml(value) {
         .replaceAll("'", "&#039;");
 }
 
+function t(key) {
+    const lang = state.currentLanguage || "pt";
+    return TRANSLATIONS[lang]?.[key] || key;
+}
+
+function updateLanguageUI() {
+    document.querySelectorAll("[data-i18n]").forEach((element) => {
+        const key = element.dataset.i18n;
+        element.textContent = t(key);
+    });
+    
+    document.querySelectorAll("[data-i18n-html]").forEach((element) => {
+        const key = element.dataset.i18nHtml;
+        element.innerHTML = t(key);
+    });
+    
+    document.querySelectorAll("[data-i18n-title]").forEach((element) => {
+        const key = element.dataset.i18nTitle;
+        element.setAttribute("title", t(key));
+        const tooltipInstance = bootstrap.Tooltip.getInstance(element);
+        if (tooltipInstance) {
+            tooltipInstance.dispose();
+            new bootstrap.Tooltip(element);
+        }
+    });
+    
+    document.querySelectorAll("[data-i18n-placeholder]").forEach((element) => {
+        const key = element.dataset.i18nPlaceholder;
+        element.setAttribute("placeholder", t(key));
+    });
+    
+    if (!state.lastOutput) {
+        updateOutput("", state.lastDownloadName);
+    }
+    
+    if (!state.previewColumns.length) {
+        renderEmptyPreview();
+    }
+    
+    if (state.workbooks.length) {
+        const workbookEntry = state.workbooks[state.selectedFileIndex];
+        const sheetName = state.selectedSheetName;
+        const rows = getRowsForSheet(workbookEntry, sheetName);
+        updateStats(rows, sheetName);
+    } else {
+        elements.fileSummary.textContent = t("file_summary_empty");
+        elements.statSheet.textContent = "-";
+    }
+    
+    const badgeText = elements.statusBadge.textContent.toLowerCase();
+    let activeKey = "waiting";
+    let currentTone = "secondary";
+    
+    if (elements.statusBadge.className.includes("text-bg-info")) currentTone = "info";
+    else if (elements.statusBadge.className.includes("text-bg-success")) currentTone = "success";
+    else if (elements.statusBadge.className.includes("text-bg-danger")) currentTone = "danger";
+    
+    if (badgeText.includes("proc") || badgeText.includes("process")) activeKey = "processing";
+    else if (badgeText.includes("err") || badgeText.includes("erro")) activeKey = "error";
+    else if (badgeText.includes("pron") || badgeText.includes("ready") || badgeText.includes("pronto")) activeKey = "ready";
+    setStatus(activeKey, currentTone);
+}
+
+function setLanguage(lang) {
+    state.currentLanguage = lang;
+    localStorage.setItem(LANG_KEY, lang);
+    if (elements.languageSelect) {
+        elements.languageSelect.value = lang;
+    }
+    updateLanguageUI();
+}
+
+function initLanguage() {
+    setLanguage(localStorage.getItem(LANG_KEY) || "pt");
+}
+
 function showToast(message, type = "success", icon = "bi-check-circle-fill") {
     elements.appToast.className = "toast align-items-center border-0";
     elements.appToast.classList.add(
@@ -107,12 +341,12 @@ function hideProgress() {
     elements.progressBar.style.width = "0%";
     elements.progressBar.textContent = "0%";
     elements.progressBar.setAttribute("aria-valuenow", "0");
-    elements.progressLabel.textContent = "A ler ficheiro...";
+    elements.progressLabel.textContent = t("progress_reading");
 }
 
 function setStatus(label, tone = "secondary") {
     elements.statusBadge.className = `badge text-bg-${tone}`;
-    elements.statusBadge.textContent = label;
+    elements.statusBadge.textContent = t("status_" + label);
 }
 
 function getExtension(fileName) {
@@ -123,11 +357,11 @@ function validateFile(file) {
     const extension = getExtension(file.name);
 
     if (!VALID_EXTENSIONS.includes(extension)) {
-        return { valid: false, message: "Ficheiro nao suportado." };
+        return { valid: false, message: t("dropzone_invalid_ext") };
     }
 
     if (file.size > MAX_FILE_SIZE) {
-        return { valid: false, message: "Ficheiro demasiado grande. Maximo 10MB." };
+        return { valid: false, message: t("dropzone_invalid_size") };
     }
 
     return { valid: true };
@@ -137,10 +371,10 @@ function readFile(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
 
-        reader.onerror = () => reject(new Error("Falha ao ler o ficheiro."));
+        reader.onerror = () => reject(new Error(t("dropzone_read_fail")));
         reader.onprogress = (event) => {
             if (event.lengthComputable) {
-                updateProgress((event.loaded / event.total) * 100, `A ler ${file.name}...`);
+                updateProgress((event.loaded / event.total) * 100, t("progress_reading"));
             }
         };
         reader.onload = () => resolve(reader.result);
@@ -179,7 +413,7 @@ function populateFileSelector() {
     elements.fileSelector.innerHTML = "";
 
     if (!state.workbooks.length) {
-        elements.fileSelector.innerHTML = '<option value="0">Escolhe um ficheiro</option>';
+        elements.fileSelector.innerHTML = `<option value="0">${t("opt_file_choose")}</option>`;
         elements.fileSelector.disabled = true;
         return;
     }
@@ -197,7 +431,7 @@ function populateFileSelector() {
 
 function populateKeyFieldOptions(rows) {
     const columns = rows.length ? Object.keys(rows[0]) : [];
-    elements.keyField.innerHTML = '<option value="">Auto (index)</option>';
+    elements.keyField.innerHTML = `<option value="">${t("opt_key_auto")}</option>`;
 
     columns.forEach((column) => {
         const option = document.createElement("option");
@@ -214,10 +448,10 @@ function populateSheetSelector() {
     const sheetNames = workbookEntry ? workbookEntry.workbook.SheetNames : [];
 
     elements.sheetSelector.innerHTML = "";
-    elements.keyField.innerHTML = '<option value="">Auto (index)</option>';
+    elements.keyField.innerHTML = `<option value="">${t("opt_key_auto")}</option>`;
 
     if (!sheetNames.length) {
-        elements.sheetSelector.innerHTML = '<option value="">Escolhe uma sheet</option>';
+        elements.sheetSelector.innerHTML = `<option value="">${t("opt_sheet_choose")}</option>`;
         elements.sheetSelector.disabled = true;
         elements.keyField.disabled = true;
         return;
@@ -246,8 +480,8 @@ function updateStats(rows, sheetName) {
 
 function renderEmptyPreview() {
     elements.previewTable.innerHTML = [
-        '<thead class="table-dark"><tr><th>Sem dados</th></tr></thead>',
-        '<tbody><tr><td class="text-soft">Carrega um ficheiro para ver o preview.</td></tr></tbody>'
+        `<thead class="table-dark"><tr><th>${t("preview_no_data_hdr")}</th></tr></thead>`,
+        `<tbody><tr><td class="text-soft">${t("preview_no_data_body")}</td></tr></tbody>`
     ].join("");
     elements.statRows.textContent = "0";
     elements.statCols.textContent = "0";
@@ -382,7 +616,7 @@ function highlightOutput() {
 function updateOutput(jsonString, filename) {
     state.lastOutput = jsonString;
     state.lastDownloadName = filename;
-    elements.output.textContent = jsonString || '{\n  "status": "Sem resultado"\n}';
+    elements.output.textContent = jsonString || `{\n  "status": "${t("output_status_empty")}"\n}`;
     elements.output.removeAttribute("data-highlighted");
     highlightOutput();
     elements.copyButton.disabled = !jsonString;
@@ -391,7 +625,7 @@ function updateOutput(jsonString, filename) {
 
 function convertToJson() {
     if (!state.workbooks.length) {
-        showToast("Carrega primeiro um ficheiro.", "warning", "bi-exclamation-triangle-fill");
+        showToast(t("toast_load_file_first"), "warning", "bi-exclamation-triangle-fill");
         return;
     }
 
@@ -422,7 +656,7 @@ function convertToJson() {
         })();
 
     updateOutput(stringifyOutput(result), selectedWorkbook.baseName);
-    showToast("JSON gerado com sucesso.");
+    showToast(t("toast_json_success"));
 }
 
 function downloadTextFile(content, filename, mimeType) {
@@ -439,12 +673,12 @@ function downloadTextFile(content, filename, mimeType) {
 
 function downloadJson() {
     if (!state.lastOutput) {
-        showToast("Ainda nao existe JSON para baixar.", "warning", "bi-exclamation-triangle-fill");
+        showToast(t("toast_no_json_download"), "warning", "bi-exclamation-triangle-fill");
         return;
     }
 
     downloadTextFile(state.lastOutput, `${state.lastDownloadName}.json`, "application/json");
-    showToast("JSON descarregado.");
+    showToast(t("toast_json_downloaded"));
 }
 
 async function copyOutput() {
@@ -454,9 +688,9 @@ async function copyOutput() {
 
     try {
         await navigator.clipboard.writeText(state.lastOutput);
-        showToast("JSON copiado para a area de transferencia.");
+        showToast(t("toast_copied"));
     } catch (error) {
-        showToast("Nao foi possivel copiar automaticamente.", "danger", "bi-x-octagon-fill");
+        showToast(t("toast_copy_fail"), "danger", "bi-x-octagon-fill");
     }
 }
 
@@ -465,8 +699,8 @@ function toggleOutputExpand() {
     const maximized = elements.outputWrapper.classList.contains("is-maximized");
 
     elements.expandButton.innerHTML = maximized
-        ? '<i class="bi bi-fullscreen-exit"></i> Fechar'
-        : '<i class="bi bi-arrows-fullscreen"></i> Expandir';
+        ? `<i class="bi bi-fullscreen-exit"></i> <span data-i18n="btn_collapse">${t("btn_collapse")}</span>`
+        : `<i class="bi bi-arrows-fullscreen"></i> <span data-i18n="btn_expand">${t("btn_expand")}</span>`;
 }
 
 function resetState(showFeedback = true) {
@@ -478,12 +712,12 @@ function resetState(showFeedback = true) {
     state.previewRows = [];
     state.previewColumns = [];
 
-    elements.fileSummary.textContent = "Nenhum ficheiro selecionado.";
-    elements.fileSelector.innerHTML = '<option value="0">Escolhe um ficheiro</option>';
+    elements.fileSummary.textContent = t("file_summary_empty");
+    elements.fileSelector.innerHTML = `<option value="0">${t("opt_file_choose")}</option>`;
     elements.fileSelector.disabled = true;
-    elements.sheetSelector.innerHTML = '<option value="">Escolhe uma sheet</option>';
+    elements.sheetSelector.innerHTML = `<option value="">${t("opt_sheet_choose")}</option>`;
     elements.sheetSelector.disabled = true;
-    elements.keyField.innerHTML = '<option value="">Auto (index)</option>';
+    elements.keyField.innerHTML = `<option value="">${t("opt_key_auto")}</option>`;
     elements.keyField.disabled = true;
     elements.convertButton.disabled = true;
     elements.copyButton.disabled = true;
@@ -493,17 +727,17 @@ function resetState(showFeedback = true) {
     renderEmptyPreview();
     updateOutput("", "conversao");
     updateDropZoneState();
-    setStatus("Aguardando", "secondary");
+    setStatus("waiting", "secondary");
     elements.statFiles.textContent = "0";
 
     if (showFeedback) {
-        showToast("Interface limpa e pronta para novo ficheiro.");
+        showToast(t("toast_cleared"));
     }
 }
 
 function loadOutputIntoEditor() {
     elements.outputEditor.value = state.lastOutput;
-    showToast("Output enviado para o editor.");
+    showToast(t("toast_editor_loaded"));
 }
 
 function normalizeJsonInput(input) {
@@ -521,14 +755,14 @@ function normalizeJsonInput(input) {
         return Object.values(parsed);
     }
 
-    throw new Error("O JSON precisa de ser um array ou objeto.");
+    throw new Error(t("toast_invalid_json"));
 }
 
 function jsonToExcel() {
     const raw = elements.outputEditor.value.trim();
 
     if (!raw) {
-        showToast("Cola JSON valido antes de gerar Excel.", "warning", "bi-exclamation-triangle-fill");
+        showToast(t("toast_paste_valid_json"), "warning", "bi-exclamation-triangle-fill");
         return;
     }
 
@@ -540,9 +774,9 @@ function jsonToExcel() {
         XLSX.utils.book_append_sheet(workbook, sheet, "Dados");
         XLSX.writeFile(workbook, "json-convertido.xlsx");
 
-        showToast("Excel gerado a partir do JSON.");
+        showToast(t("toast_excel_generated"));
     } catch (error) {
-        showToast(`Erro ao converter JSON para Excel: ${error.message}`, "danger", "bi-x-octagon-fill");
+        showToast(t("toast_convert_err").replace("{err}", error.message), "danger", "bi-x-octagon-fill");
     }
 }
 
@@ -565,14 +799,14 @@ async function handleFiles(fileList) {
 
     resetState(false);
     elements.statFiles.textContent = String(files.length);
-    setStatus("A processar", "info");
+    setStatus("processing", "info");
 
     for (const file of files) {
         const validation = validateFile(file);
         if (!validation.valid) {
             updateDropZoneState("invalid");
             hideProgress();
-            setStatus("Erro", "danger");
+            setStatus("error", "danger");
             showToast(validation.message, "danger", "bi-x-octagon-fill");
             return;
         }
@@ -585,9 +819,9 @@ async function handleFiles(fileList) {
 
         for (let index = 0; index < files.length; index += 1) {
             const file = files[index];
-            updateProgress((index / files.length) * 100, `A preparar ${file.name}...`);
+            updateProgress((index / files.length) * 100, t("progress_preparing").replace("{filename}", file.name));
             const content = await readFile(file);
-            updateProgress(((index + 0.6) / files.length) * 100, `A interpretar ${file.name}...`);
+            updateProgress(((index + 0.6) / files.length) * 100, t("progress_interpreting").replace("{filename}", file.name));
             const workbook = readWorkbookFromFile(file, content);
 
             loaded.push({
@@ -596,7 +830,7 @@ async function handleFiles(fileList) {
                 workbook
             });
 
-            updateProgress(((index + 1) / files.length) * 100, `${file.name} carregado.`);
+            updateProgress(((index + 1) / files.length) * 100, t("progress_loaded").replace("{filename}", file.name));
         }
 
         state.workbooks = loaded;
@@ -604,12 +838,12 @@ async function handleFiles(fileList) {
         populateFileSelector();
         populateSheetSelector();
         refreshSheetPreview();
-        setStatus("Pronto", "success");
+        setStatus("ready", "success");
         elements.convertButton.disabled = false;
-        showToast(files.length > 1 ? "Ficheiros carregados com sucesso." : "Ficheiro carregado com sucesso.");
+        showToast(files.length > 1 ? t("toast_files_loaded") : t("toast_file_loaded"));
     } catch (error) {
         updateDropZoneState("invalid");
-        setStatus("Erro", "danger");
+        setStatus("error", "danger");
         showToast(error.message, "danger", "bi-x-octagon-fill");
     } finally {
         hideProgress();
@@ -651,6 +885,10 @@ elements.jsonToExcelButton.addEventListener("click", loadOutputIntoEditor);
 elements.downloadExcelButton.addEventListener("click", jsonToExcel);
 elements.loadOutputToEditor.addEventListener("click", loadOutputIntoEditor);
 
+elements.languageSelect.addEventListener("change", (event) => {
+    setLanguage(event.target.value);
+});
+
 elements.themeToggle.addEventListener("click", () => {
     const currentTheme = document.documentElement.getAttribute("data-bs-theme");
     setTheme(currentTheme === "dark" ? "light" : "dark");
@@ -688,9 +926,9 @@ window.addEventListener("keydown", (event) => {
 
 document.addEventListener("DOMContentLoaded", () => {
     initTheme();
+    initLanguage();
     updateOutput("", "conversao");
     hideProgress();
-    setStatus("Aguardando", "secondary");
     renderEmptyPreview();
 
     document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((element) => {
