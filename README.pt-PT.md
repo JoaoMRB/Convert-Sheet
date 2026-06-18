@@ -12,7 +12,7 @@ Criado por [Malog](https://github.com/JoaoMRB).
 
 Versão online:
 
-[https://joaomrb.github.io/ConverterJson/](https://joaomrb.github.io/ConverterJson/)
+[https://joaomrb.github.io/Convert-Sheet/](https://joaomrb.github.io/Convert-Sheet/)
 
 ![Convert/Sheet em execução no browser](./docs/preview.png)
 
@@ -52,7 +52,7 @@ A opção de importação por URL depende de o servidor externo permitir acesso 
 O URL do GitHub Pages é:
 
 ```text
-https://joaomrb.github.io/ConverterJson/
+https://joaomrb.github.io/Convert-Sheet/
 ```
 
 Para publicar no teu repositório:
@@ -76,7 +76,7 @@ Para publicar no teu repositório:
 ## Estrutura do Projeto
 
 ```text
-ConverterJson/
+Convert-Sheet/
 |-- docs/
 |   `-- preview.png
 |-- Index.html
