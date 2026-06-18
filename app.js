@@ -264,6 +264,7 @@ const state = {
     selectedFileIndex: 0,
     selectedSheetName: "",
     lastOutput: "",
+    lastPayload: null,
     lastDownloadName: "output",
     lastFormat: "json",
     previewRows: [],
@@ -787,18 +788,34 @@ function trimAllCells() {
     showToast(t("clean_trim_done"));
 }
 
+function isNonEmptyRow(row) {
+    return Object.values(row).some(v => v !== "" && v != null);
+}
+
 function removeEmptyRows() {
-    const before = state.previewRows.length;
-    state.previewRows = state.previewRows.filter(row =>
-        Object.values(row).some(v => v !== "" && v != null)
-    );
-    const removed = before - state.previewRows.length;
+    const wb = state.workbooks[state.selectedFileIndex];
+    if (!wb || !state.selectedSheetName) return;
+
+    const sheet = wb.workbook.Sheets[state.selectedSheetName];
+    if (!sheet) return;
+
+    const rows = XLSX.utils.sheet_to_json(sheet, { defval: "", raw: false });
+    const before = rows.length;
+    const filtered = rows.filter(isNonEmptyRow);
+    const removed = before - filtered.length;
+
     if (removed === 0) {
         showToast(t("clean_empty_none"), "warning", "bi-exclamation-triangle-fill");
-    } else {
-        renderPreviewTable();
-        showToast(t("clean_empty_done").replace("{n}", removed));
+        return;
     }
+
+    wb.workbook.Sheets[state.selectedSheetName] = XLSX.utils.json_to_sheet(filtered);
+    state.previewRows = filtered.slice(0, 10).map(r => ({ ...r }));
+    state.previewColumns = filtered.length ? Object.keys(filtered[0]) : state.previewColumns;
+    populateKeyFieldOptions(filtered);
+    renderPreviewTable();
+    updateStats(filtered, state.selectedSheetName);
+    showToast(t("clean_empty_done").replace("{n}", removed));
 }
 
 /* ==========================================================================
@@ -969,7 +986,7 @@ function updateOutput(str, filename) {
     highlightElement(elements.output, formatHighlightLang(state.lastFormat));
     elements.copyButton.disabled = !str;
     elements.downloadButton.disabled = !str;
-    if (str) updateSnippet(str);
+    if (str) updateSnippet();
 }
 
 function setActiveFormat(format) {
@@ -1010,6 +1027,7 @@ function convertToJson() {
             });
         })();
 
+    state.lastPayload = result;
     const serialized = serializeOutput(result, state.lastFormat);
     updateOutput(serialized, wb.baseName);
     showToast(t("toast_json_success"));
@@ -1057,22 +1075,43 @@ function toggleOutputExpand() {
 /* ==========================================================================
    Integration Snippets
    ========================================================================== */
-function buildSnippet(jsonStr, lang) {
-    if (!jsonStr || jsonStr.startsWith("{")) {
-        // check if it's the empty/status object
-        try {
-            const parsed = JSON.parse(jsonStr || "{}");
-            if (parsed.status) return t("snippet_no_data");
-        } catch {}
-    }
+function truncateSnippetText(text, max = 400) {
+    return text.length > max ? `${text.slice(0, max)}\n// ...` : text;
+}
 
-    const sampleData = jsonStr.length > 300 ? jsonStr.slice(0, 300) + "\n// ..." : jsonStr;
+function escapeTemplateLiteral(str) {
+    return str.replace(/\\/g, "\\\\").replace(/`/g, "\\`").replace(/\$/g, "\\$");
+}
+
+function escapePythonTriple(str) {
+    return str.replace(/\\/g, "\\\\").replace(/"""/g, '\\"""');
+}
+
+function escapeShellSingleQuoted(str) {
+    return str.replace(/'/g, "'\"'\"'");
+}
+
+function buildSnippet(lang) {
+    if (state.lastPayload == null || !state.lastOutput) return t("snippet_no_data");
+
+    const format = state.lastFormat;
+    const serialized = state.lastOutput;
+    const payload = state.lastPayload;
+    const contentType = {
+        json: "application/json",
+        yaml: "text/yaml",
+        xml: "application/xml",
+        markdown: "text/markdown",
+    }[format] ?? "application/json";
+    const bodySample = truncateSnippetText(serialized);
+    const jsonSample = truncateSnippetText(JSON.stringify(payload, null, 2), 300);
 
     switch (lang) {
-        case "fetch": return `// JavaScript — Fetch API
-const data = ${sampleData};
+        case "fetch":
+            if (format === "json") {
+                return `// JavaScript — Fetch API
+const data = ${jsonSample};
 
-// POST example
 fetch("https://your-api.com/endpoint", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
@@ -1081,20 +1120,49 @@ fetch("https://your-api.com/endpoint", {
   .then(res => res.json())
   .then(json => console.log(json))
   .catch(err => console.error(err));`;
+            }
+            return `// JavaScript — Fetch API
+const body = \`${escapeTemplateLiteral(bodySample)}\`;
 
-        case "axios": return `// JavaScript — Axios
+fetch("https://your-api.com/endpoint", {
+  method: "POST",
+  headers: { "Content-Type": "${contentType}" },
+  body
+})
+  .then(res => res.text())
+  .then(text => console.log(text))
+  .catch(err => console.error(err));`;
+
+        case "axios":
+            if (format === "json") {
+                return `// JavaScript — Axios
 import axios from "axios";
 
-const data = ${sampleData};
+const data = ${jsonSample};
 
-axios.post("https://your-api.com/endpoint", data)
+axios.post("https://your-api.com/endpoint", data, {
+  headers: { "Content-Type": "application/json" }
+})
+  .then(({ data }) => console.log(data))
+  .catch(err => console.error(err));`;
+            }
+            return `// JavaScript — Axios
+import axios from "axios";
+
+const body = \`${escapeTemplateLiteral(bodySample)}\`;
+
+axios.post("https://your-api.com/endpoint", body, {
+  headers: { "Content-Type": "${contentType}" }
+})
   .then(({ data }) => console.log(data))
   .catch(err => console.error(err));`;
 
-        case "python": return `# Python — requests
-import requests, json
+        case "python":
+            if (format === "json") {
+                return `# Python — requests
+import requests
 
-data = ${sampleData}
+data = ${jsonSample}
 
 response = requests.post(
     "https://your-api.com/endpoint",
@@ -1102,18 +1170,38 @@ response = requests.post(
     headers={"Content-Type": "application/json"}
 )
 print(response.status_code, response.json())`;
+            }
+            return `# Python — requests
+import requests
 
-        case "curl": return `# cURL
+body = """${escapePythonTriple(bodySample)}"""
+
+response = requests.post(
+    "https://your-api.com/endpoint",
+    data=body.encode("utf-8"),
+    headers={"Content-Type": "${contentType}"}
+)
+print(response.status_code, response.text)`;
+
+        case "curl":
+            if (format === "json") {
+                return `# cURL
 curl -X POST "https://your-api.com/endpoint" \\
   -H "Content-Type: application/json" \\
-  -d '${jsonStr.replace(/'/g, "'\"'\"'").slice(0,200)}'`;
+  -d '${escapeShellSingleQuoted(jsonSample)}'`;
+            }
+            return `# cURL
+curl -X POST "https://your-api.com/endpoint" \\
+  -H "Content-Type: ${contentType}" \\
+  -d '${escapeShellSingleQuoted(bodySample)}'`;
 
-        default: return t("snippet_no_data");
+        default:
+            return t("snippet_no_data");
     }
 }
 
-function updateSnippet(jsonStr) {
-    const code = buildSnippet(jsonStr, state.activeSnippetLang);
+function updateSnippet() {
+    const code = buildSnippet(state.activeSnippetLang);
     elements.snippetOutput.textContent = code;
     const langMap = { fetch: "javascript", axios: "javascript", python: "python", curl: "bash" };
     highlightElement(elements.snippetOutput, langMap[state.activeSnippetLang] || "javascript");
@@ -1171,6 +1259,7 @@ function jsonToExcel() {
 function resetState(feedback = true) {
     state.workbooks = []; state.selectedFileIndex = 0;
     state.selectedSheetName = ""; state.lastOutput = "";
+    state.lastPayload = null;
     state.lastDownloadName = "output"; state.previewRows = [];
     state.previewColumns = []; state.columnTypes = {};
     state.searchQuery = ""; state.lastFormat = "json";
@@ -1342,7 +1431,7 @@ document.querySelectorAll(".snippet-lang-btn").forEach(btn => {
         document.querySelectorAll(".snippet-lang-btn").forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
         state.activeSnippetLang = btn.dataset.lang;
-        updateSnippet(state.lastOutput);
+        updateSnippet();
     });
 });
 elements.copySnippetBtn.addEventListener("click", copySnippet);

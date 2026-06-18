@@ -299,7 +299,6 @@ body {
 .drop-zone {
     border: 2px dashed var(--border-color);
     border-radius: 12px;
-    height: 100%;
     min-height: 195px;
     display: flex;
     align-items: center;
@@ -1185,19 +1184,20 @@ body {
 .drop-zone-wrapper {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    min-height: 100%;
     gap: 0.5rem;
 }
 
 .drop-zone-wrapper .drop-zone {
-    flex-grow: 1;
+    flex: 1 1 auto;
+    min-height: 195px;
 }
 
 .url-import-section {
+    flex-shrink: 0;
     background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: 10px;
-    overflow: hidden;
     transition: var(--theme-transition);
 }
 
@@ -1236,9 +1236,10 @@ body {
     display: none;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.6rem 0.85rem;
+    padding: 0.65rem 0.85rem 0.75rem;
     border-top: 1px solid var(--border-color);
     background: var(--input-bg);
+    border-radius: 0 0 10px 10px;
 }
 
 .url-import-bar.open {
@@ -1267,12 +1268,13 @@ body {
     background: var(--accent);
     border: none;
     border-radius: 6px;
-    padding: 0.3rem 0.75rem;
+    padding: 0.45rem 0.75rem;
     font-size: 0.77rem;
     font-weight: 700;
     color: #0d0900;
     cursor: pointer;
     white-space: nowrap;
+    flex-shrink: 0;
     transition: var(--theme-transition);
     font-family: var(--font-sans);
 }
