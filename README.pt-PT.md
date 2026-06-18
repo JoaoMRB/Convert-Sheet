@@ -6,7 +6,7 @@ O Convert/Sheet é uma pequena ferramenta de browser para converter ficheiros Ex
 
 Tudo corre no browser. Sem backend, sem conta e sem upload dos ficheiros.
 
-Criado por [JoãoMRB](https://github.com/JoaoMRB).
+Criado por [Malog](https://github.com/JoaoMRB).
 
 ## Demo
 
@@ -104,4 +104,4 @@ ConverterJson/
 
 ## Autor
 
-Criado por [JoãoMRB](https://github.com/JoaoMRB).
+Criado por [Malog](https://github.com/JoaoMRB).

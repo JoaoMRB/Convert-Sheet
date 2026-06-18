@@ -6,7 +6,7 @@ Convert/Sheet is a small browser tool for converting Excel and CSV files into JS
 
 Everything runs in the browser. No backend, no account, no file uploads.
 
-Created by [JoãoMRB](https://github.com/JoaoMRB).
+Created by [Malog](https://github.com/JoaoMRB).
 
 ## Demo
 
@@ -104,4 +104,4 @@ ConverterJson/
 
 ## Author
 
-Created by [JoãoMRB](https://github.com/JoaoMRB).
+Created by [Malog](https://github.com/JoaoMRB).

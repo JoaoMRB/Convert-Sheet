@@ -17,7 +17,7 @@ const TRANSLATIONS = {
     pt: {
         help_tooltip: "Arraste ficheiros, edite a grelha, filtre linhas e exporte em múltiplos formatos.",
         theme_tooltip: "Alternar tema",
-        developed_by: "Desenvolvido por JoãoMRB",
+        developed_by: "Desenvolvido por Malog",
 
         dropzone_title: "Solte o seu ficheiro aqui",
         dropzone_subtitle: "ou clique para procurar (.xlsx, .xls, .csv até 10MB)",
@@ -137,7 +137,7 @@ const TRANSLATIONS = {
     en: {
         help_tooltip: "Drag files, edit the grid, filter rows and export in multiple formats.",
         theme_tooltip: "Toggle theme",
-        developed_by: "Developed by JoãoMRB",
+        developed_by: "Developed by Malog",
 
         dropzone_title: "Drop your file here",
         dropzone_subtitle: "or click to browse (.xlsx, .xls, .csv up to 10MB)",
