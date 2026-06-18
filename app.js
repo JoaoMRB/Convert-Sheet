@@ -313,6 +313,7 @@ const elements = {
     cleanEmpty:           document.getElementById("cleanEmpty"),
     output:               document.getElementById("output"),
     outputWrapper:        document.getElementById("outputWrapper"),
+    outputCloseButton:    document.getElementById("outputCloseButton"),
     copyButton:           document.getElementById("copyButton"),
     downloadButton:       document.getElementById("downloadButton"),
     expandButton:         document.getElementById("expandButton"),
@@ -377,11 +378,206 @@ function setLanguage(lang) {
     localStorage.setItem(LANG_KEY, lang);
     if (elements.languageSelect) elements.languageSelect.value = lang;
     updateLanguageUI();
+    refreshCustomSelects();
 }
 
 function initLanguage() {
     setLanguage(localStorage.getItem(LANG_KEY) || "pt");
 }
+
+/* ==========================================================================
+   Custom Comboboxes
+   ========================================================================== */
+const customSelects = new WeakMap();
+let activeCustomSelect = null;
+
+function getSelectedOption(select) {
+    return select.options[select.selectedIndex] || select.options[0];
+}
+
+function getCustomSelectLabel(select) {
+    const explicitLabel = select.getAttribute("aria-label");
+    if (explicitLabel) return explicitLabel;
+    if (select.id) {
+        const label = document.querySelector(`label[for="${select.id}"]`);
+        if (label) return label.textContent.trim();
+    }
+    return select.dataset.col || "Select option";
+}
+
+function closeCustomSelect(custom, focusButton = false) {
+    if (!custom) return;
+    custom.root.classList.remove("is-open");
+    custom.button.setAttribute("aria-expanded", "false");
+    if (activeCustomSelect === custom) activeCustomSelect = null;
+    if (focusButton) custom.button.focus();
+}
+
+function closeActiveCustomSelect(focusButton = false) {
+    closeCustomSelect(activeCustomSelect, focusButton);
+}
+
+function setCustomSelectValue(select, value) {
+    if (select.disabled) return;
+    select.value = value;
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+    refreshCustomSelect(select);
+    closeActiveCustomSelect(true);
+}
+
+function updateCustomSelectHighlight(custom) {
+    const options = Array.from(custom.list.querySelectorAll(".custom-select-option:not(:disabled)"));
+    options.forEach((option, index) => {
+        const highlighted = index === custom.highlightedIndex;
+        option.classList.toggle("is-highlighted", highlighted);
+        if (highlighted) option.scrollIntoView({ block: "nearest" });
+    });
+}
+
+function renderCustomSelectOptions(select) {
+    const custom = customSelects.get(select);
+    if (!custom) return;
+
+    const selected = getSelectedOption(select);
+    custom.value.textContent = selected ? selected.textContent : "";
+    custom.root.classList.toggle("is-disabled", select.disabled);
+    custom.button.disabled = select.disabled;
+    custom.button.setAttribute("aria-label", getCustomSelectLabel(select));
+    custom.button.setAttribute("aria-disabled", String(select.disabled));
+    custom.list.innerHTML = "";
+
+    Array.from(select.options).forEach((option, index) => {
+        const item = document.createElement("button");
+        item.type = "button";
+        item.className = "custom-select-option";
+        item.setAttribute("role", "option");
+        item.setAttribute("aria-selected", String(option.selected));
+        item.dataset.value = option.value;
+        item.textContent = option.textContent;
+        item.disabled = option.disabled;
+        if (option.selected) item.classList.add("is-selected");
+        item.addEventListener("click", () => setCustomSelectValue(select, option.value));
+        item.addEventListener("mousemove", () => {
+            custom.highlightedIndex = index;
+            updateCustomSelectHighlight(custom);
+        });
+        custom.list.appendChild(item);
+    });
+}
+
+function openCustomSelect(custom) {
+    if (custom.select.disabled) return;
+    if (activeCustomSelect && activeCustomSelect !== custom) closeCustomSelect(activeCustomSelect);
+    custom.root.classList.add("is-open");
+    custom.button.setAttribute("aria-expanded", "true");
+    activeCustomSelect = custom;
+    const enabledOptions = Array.from(custom.list.querySelectorAll(".custom-select-option:not(:disabled)"));
+    const selectedIndex = enabledOptions.findIndex(option => option.classList.contains("is-selected"));
+    custom.highlightedIndex = Math.max(0, selectedIndex);
+    updateCustomSelectHighlight(custom);
+}
+
+function toggleCustomSelect(custom) {
+    if (custom.root.classList.contains("is-open")) closeCustomSelect(custom);
+    else openCustomSelect(custom);
+}
+
+function handleCustomSelectKeydown(event, custom) {
+    const options = Array.from(custom.list.querySelectorAll(".custom-select-option:not(:disabled)"));
+    if (!options.length) return;
+
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+        event.preventDefault();
+        if (!custom.root.classList.contains("is-open")) openCustomSelect(custom);
+        const direction = event.key === "ArrowDown" ? 1 : -1;
+        custom.highlightedIndex = (custom.highlightedIndex + direction + options.length) % options.length;
+        updateCustomSelectHighlight(custom);
+        return;
+    }
+
+    if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        if (!custom.root.classList.contains("is-open")) {
+            openCustomSelect(custom);
+            return;
+        }
+        const option = options[custom.highlightedIndex] || options[0];
+        if (option) setCustomSelectValue(custom.select, option.dataset.value);
+        return;
+    }
+
+    if (event.key === "Escape") {
+        event.preventDefault();
+        closeCustomSelect(custom, true);
+    }
+}
+
+function initCustomSelect(select) {
+    if (customSelects.has(select)) {
+        refreshCustomSelect(select);
+        return;
+    }
+
+    const wrapper = select.closest(".select-wrapper");
+    if (!wrapper) return;
+
+    wrapper.classList.add("custom-select-ready");
+    select.classList.add("native-select-hidden");
+    select.tabIndex = -1;
+
+    const root = document.createElement("div");
+    root.className = "custom-select";
+    if (select.classList.contains("language-select")) root.classList.add("custom-select-language");
+    if (select.classList.contains("col-type-select")) root.classList.add("custom-select-column");
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "custom-select-button";
+    button.setAttribute("aria-haspopup", "listbox");
+    button.setAttribute("aria-expanded", "false");
+
+    const value = document.createElement("span");
+    value.className = "custom-select-value";
+
+    const icon = document.createElement("i");
+    icon.className = "bi bi-chevron-down custom-select-icon";
+    icon.setAttribute("aria-hidden", "true");
+
+    const list = document.createElement("div");
+    list.className = "custom-select-list";
+    list.setAttribute("role", "listbox");
+
+    button.append(value, icon);
+    root.append(button, list);
+    wrapper.appendChild(root);
+
+    const custom = { select, root, button, value, list, highlightedIndex: 0 };
+    customSelects.set(select, custom);
+
+    button.addEventListener("click", () => toggleCustomSelect(custom));
+    button.addEventListener("keydown", event => handleCustomSelectKeydown(event, custom));
+    select.addEventListener("change", () => refreshCustomSelect(select));
+
+    const observer = new MutationObserver(() => refreshCustomSelect(select));
+    observer.observe(select, { attributes: true, childList: true, subtree: true, characterData: true });
+    custom.observer = observer;
+
+    renderCustomSelectOptions(select);
+}
+
+function refreshCustomSelect(select) {
+    renderCustomSelectOptions(select);
+}
+
+function refreshCustomSelects() {
+    document.querySelectorAll(".option-select, .col-type-select").forEach(initCustomSelect);
+}
+
+document.addEventListener("click", event => {
+    if (activeCustomSelect && !activeCustomSelect.root.contains(event.target)) {
+        closeActiveCustomSelect();
+    }
+});
 
 /* ==========================================================================
    Theme
@@ -664,7 +860,9 @@ function renderPreviewTable() {
         <th>
             <div class="th-inner">
                 <span class="th-label">${escapeHtml(col)}</span>
-                <select class="col-type-select" data-col="${escapeHtml(col)}">${colTypeOptions(col)}</select>
+                <div class="select-wrapper column-select-wrapper">
+                    <select class="col-type-select" data-col="${escapeHtml(col)}">${colTypeOptions(col)}</select>
+                </div>
             </div>
         </th>`).join("")}</tr></thead>`;
 
@@ -699,6 +897,7 @@ function renderPreviewTable() {
             renderPreviewTable();
         });
     });
+    refreshCustomSelects();
 }
 
 function refreshSheetPreview() {
@@ -1070,6 +1269,8 @@ function toggleOutputExpand() {
     elements.expandButton.innerHTML = max
         ? `<i class="bi bi-fullscreen-exit"></i><span data-i18n="btn_collapse">${t("btn_collapse")}</span>`
         : `<i class="bi bi-arrows-fullscreen"></i><span data-i18n="btn_expand">${t("btn_expand")}</span>`;
+    elements.outputCloseButton.setAttribute("aria-label", t("btn_collapse"));
+    if (max) elements.outputCloseButton.focus();
 }
 
 /* ==========================================================================
@@ -1382,6 +1583,7 @@ elements.convertButton.addEventListener("click", convertToJson);
 elements.downloadButton.addEventListener("click", downloadOutput);
 elements.copyButton.addEventListener("click", copyOutput);
 elements.expandButton.addEventListener("click", toggleOutputExpand);
+elements.outputCloseButton.addEventListener("click", toggleOutputExpand);
 elements.resetButton.addEventListener("click", () => resetState(true));
 elements.jsonToExcelButton.addEventListener("click", loadOutputIntoEditor);
 elements.downloadExcelButton.addEventListener("click", jsonToExcel);
@@ -1449,10 +1651,12 @@ elements.prettyPrint.addEventListener("change", () => syncPrettyMinify("pretty")
 elements.minifyOutput.addEventListener("change", () => syncPrettyMinify("minify"));
 elements.allSheetsMode.addEventListener("change", () => {
     elements.sheetSelector.disabled = elements.allSheetsMode.checked || !state.workbooks.length;
+    refreshCustomSelect(elements.sheetSelector);
 });
 
 // Keyboard shortcuts
 window.addEventListener("keydown", e => {
+    if (e.key === "Escape" && activeCustomSelect) closeActiveCustomSelect(true);
     if (e.key === "Escape" && elements.outputWrapper.classList.contains("is-maximized")) toggleOutputExpand();
 });
 
@@ -1471,4 +1675,5 @@ document.addEventListener("DOMContentLoaded", () => {
     // Snippet placeholder
     elements.snippetOutput.textContent = t("snippet_no_data");
     highlightElement(elements.snippetOutput, "javascript");
+    refreshCustomSelects();
 });
